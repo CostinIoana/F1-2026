@@ -276,3 +276,26 @@ with app.app_context():
 
 if __name__ == "__main__":
     app.run()
+with app.app_context():
+    db.create_all()
+@app.route("/admin", methods=["GET", "POST"])
+def admin():
+    if request.method == "POST":
+        name = request.form["name"]
+        player = request.form["player"]
+        year = int(request.form["year"])
+
+        pilot = Pilot(name=name, player=player, year=year)
+        db.session.add(pilot)
+        db.session.commit()
+
+        return redirect(url_for("admin"))
+
+    pilots = Pilot.query.order_by(Pilot.year, Pilot.player).all()
+    return render_template("admin.html", pilots=pilots)
+@app.route("/delete/<int:id>")
+def delete_pilot(id):
+    pilot = Pilot.query.get_or_404(id)
+    db.session.delete(pilot)
+    db.session.commit()
+    return redirect(url_for("admin"))
